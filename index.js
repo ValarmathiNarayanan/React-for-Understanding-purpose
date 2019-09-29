@@ -1,37 +1,56 @@
-import React, { Component, useState, useContext, useEffect } from 'react';
+import React, { useReducer, useState, useContext, createContext } from 'react';
 import { render } from 'react-dom';
 import Hello from './Hello';
 import './style.css';
-import { OffSwitches, OnSwitches } from './actions';
-import { Store, StoreProvider } from './Store';
 
-const App = () => {
-  let [switchOffOn, setState] = useState(true);
-  const { state, dispatch } = useContext(Store);
-  const [buttonText, setButtonText] = useState("Click me, please");
-  return (
-    <div className="App">
-      <h1> Toggle Buttons {state.PriceMapSwitches.FXE}</h1>
-      <button className='my-btn' type='button' onClick={() => {
-        setState(switchOffOn = true)
-        OnSwitches(dispatch)
-      }}>ON Switch
-      </button>
-      <button className='my-btn' type='button' onClick={() => {
-        setState(switchOffOn = false)
-        OffSwitches(dispatch)
-      }}>OFF Switch
-      </button>
-
-       <button onClick={() => setButtonText("Thanks, been clicked!")}>
-      {buttonText}
-</button>
-    </div>
-  );
+const Actions = {
+  Update: "SET"
 }
 
-render(
-  <StoreProvider>
-    <App />
-  </StoreProvider>
-  , document.getElementById('root'));
+const set = name => ({ type: Actions.Update, payload: { name } })
+
+const reducer = (state, { type, payload }) => {
+  switch (type) {
+    case Actions.Update:
+      return payload
+    default:
+      return state
+  }
+}
+
+const Context = createContext(null);
+
+// Hooks can only be called inside the body of a function component.
+// const value = useContext(Context)
+
+const initialState = { name: "Hooks" }
+  
+const App = () => {
+  const [value, setState] = useState("Narayanan")
+  const [state, dispatch] = useReducer(reducer, initialState)
+  const [buttonText, setButtonText] = useState("Click me, please");
+
+
+  return (
+    <Context.Provider value={"Valarmathi"}>
+      <form onSubmit={e => {
+        e.preventDefault()
+        dispatch(set(value))
+      }}>
+        <Hello {...state} />
+        <Context.Consumer>
+          {contextValue => <p>Welcome {contextValue}</p>}
+        </Context.Consumer>
+        <input value={value} onChange={({ target: { value } }) => setState(value)} />
+        <br/><br/>
+        <input type="submit" value="Change Name" />
+
+        <button onClick={() => setButtonText("Thanks, been clicked!")}>
+      {buttonText}
+    </button>
+      </form>
+    </Context.Provider>
+  )
+}
+
+render(<App />, document.getElementById('root'));
